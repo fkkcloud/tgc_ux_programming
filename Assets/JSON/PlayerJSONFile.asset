@@ -1,0 +1,74 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 076b67c49aca745ff962a4e6a6c4ccdf, type: 3}
+  m_Name: PlayerJSONFile
+  m_EditorClassIdentifier: 
+  Players:
+  - Name: yuribwhite
+    NetworkMode: 0
+  - Name: cloudff7
+    NetworkMode: 0
+  - Name: tifa1987
+    NetworkMode: 0
+  - Name: chihiro
+    NetworkMode: 0
+  - Name: ncasabov6
+    NetworkMode: 0
+  - Name: desaic
+    NetworkMode: 0
+  - Name: primier3d
+    NetworkMode: 1
+  - Name: neko87
+    NetworkMode: 0
+  - Name: desert10
+    NetworkMode: 0
+  - Name: packel4
+    NetworkMode: 0
+  - Name: undercloud
+    NetworkMode: 1
+  - Name: aeris5
+    NetworkMode: 2
+  - Name: tidus2x
+    NetworkMode: 2
+  - Name: harryflotter
+    NetworkMode: 2
+  - Name: meowneko
+    NetworkMode: 2
+  - Name: midget32
+    NetworkMode: 2
+  - Name: justwannafly
+    NetworkMode: 2
+  - Name: lovinggem
+    NetworkMode: 2
+  - Name: vicent7
+    NetworkMode: 2
+  - Name: cidwlee
+    NetworkMode: 2
+  - Name: meloprince
+    NetworkMode: 2
+  - Name: sosweb
+    NetworkMode: 2
+  - Name: manhomodeus
+    NetworkMode: 2
+  - Name: japanesebomb
+    NetworkMode: 2
+  - Name: shelderfall
+    NetworkMode: 2
+  - Name: outrage67
+    NetworkMode: 2
+  - Name: mitch20399
+    NetworkMode: 2
+  - Name: wssuu2
+    NetworkMode: 2
+  - Name: artoffly82
+    NetworkMode: 2
+  - Name: catmeifyoucan
+    NetworkMode: 2
