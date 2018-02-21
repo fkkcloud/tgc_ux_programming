@@ -22,6 +22,8 @@ public class Spiral : GameBehaviour
     private float _lengthGrowSpeed = 0f;
     private float _targetLength;
 
+    private float _actualLength;
+
     void Awake()
     {
         Positions = new List<Vector3>();
@@ -53,19 +55,33 @@ public class Spiral : GameBehaviour
         }
     }
 
+    public void OnFriendlistExit()
+    {
+        if (_actualLength > LengthRange.y)
+        {
+            _actualLength = LengthRange.y;
+            Length = LengthRange.y;
+        }
+    }
+
 	// Update is called once per frame
 	void Update () 
     {
         if (Application.isPlaying) // in editor debug purposes
         {
-            _targetLength += GlobalGestureCircle.DragMotion * 1.6f;
-            _targetLength = Mathf.Clamp(_targetLength, LengthRange.x, LengthRange.y);
+            _actualLength += GlobalGestureCircle.DragMotion * 1.6f;
 
-            Length = Mathf.SmoothDamp(Length, _targetLength, ref _lengthGrowSpeed, 0.1f);
+            _actualLength = Mathf.Max(0f, _actualLength);
+
+            _targetLength = Mathf.Clamp(_actualLength, LengthRange.x, LengthRange.y);
+
+            float clampedLength = Mathf.Clamp(_actualLength, LengthRange.x, LengthRange.y);
+
+            Length = Mathf.SmoothDamp(clampedLength, _targetLength, ref _lengthGrowSpeed, 0.1f);
         }
         Length = Mathf.Clamp(Length, LengthRange.x, LengthRange.y);
-        GameScreen.color = Color.white * SpiralMath.Remap(Length, 2f, 0f, 0.5f, 1f); 
 
+        GameScreen.color = Color.white * SpiralMath.Remap(Length, 2f, 0f, 0.5f, 1f); 
 
         CreateSpiral();
 	}
@@ -78,5 +94,10 @@ public class Spiral : GameBehaviour
                 return;
             Gizmos.DrawLine(Positions[i], Positions[i+1]);
         }
+    }
+
+    public float GetActuralLength()
+    {
+        return _actualLength;
     }
 }

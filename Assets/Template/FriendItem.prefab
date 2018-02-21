@@ -107,7 +107,7 @@ GameObject:
   - component: {fileID: 198033178653618832}
   - component: {fileID: 199297818049378112}
   m_Layer: 8
-  m_Name: Particle System_OnlineClose (1)
+  m_Name: Particle System_OnlineCloseFalloff
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -171,7 +171,7 @@ Transform:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1410824213123480}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: -0.19000006}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 4361489699255284}
@@ -256,7 +256,7 @@ Transform:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1664659159975460}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: -0.19000006}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 4905917226236416}
@@ -416,6 +416,8 @@ MonoBehaviour:
   PS_OnlineClose: {fileID: 198396190497190096}
   PS_Offline: {fileID: 198894770795657182}
   PS_Selected: {fileID: 198485782053360858}
+  PS_OnlineFalloff: {fileID: 198252594035690998}
+  PS_OnlineCloseFalloff: {fileID: 198033178653618832}
   t: 3
   OpacityInTRange: {x: 0, y: 3}
   OpacityOutTRange: {x: 5, y: 10}
@@ -20847,7 +20849,7 @@ ParticleSystemRenderer:
   m_LightProbeUsage: 0
   m_ReflectionProbeUsage: 0
   m_Materials:
-  - {fileID: 2100000, guid: 8b08c1b351b0d41e9a0e0d2de31ead77, type: 2}
+  - {fileID: 2100000, guid: e11e7ce2a953447d98b317ba8d037099, type: 2}
   - {fileID: 0}
   m_StaticBatchInfo:
     firstSubMesh: 0

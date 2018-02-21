@@ -42,6 +42,21 @@ public class FriendListManager : GameBehaviour
         return true;
     }
 
+    public void OnFriendlistExit()
+    {
+        GlobalSpiralMaster.OnFriendlistExit();
+        for (int i = 0; i < _friendSlots.Count; i++)
+        {
+            _friendSlots[i].OnFriendlistExit(); 
+        }
+        _playerID = 0;
+    }
+
+    public void ResetPlayerID()
+    {
+        _playerID = 0;
+    }
+
     void SpawnFriendSlot()
     {
         Vector3 startPos = Vector3.zero;
@@ -55,6 +70,8 @@ public class FriendListManager : GameBehaviour
 
         // Init the slot
         FriendSlot friendSlot = gameObj.GetComponent<FriendSlot>();
+        if (_playerID < 0) // temp fix for TGC iPhone demo
+            _playerID = 0;
         friendSlot.Init(0f, PlayersJSON.Players[_playerID].NetworkMode, PlayersJSON.Players[_playerID].Name);
 
         // Add the slot to list
@@ -65,12 +82,6 @@ public class FriendListManager : GameBehaviour
 	// Update is called once per frame
 	void Update () 
     {
-        // DEBUG
-        if (Input.GetKey(KeyCode.D))
-        {
-            GlobalGestureCircle.SetDragMotion(-0.25f);
-        }
-
         if (IsSpaceEnough())
         {
             SpawnFriendSlot();

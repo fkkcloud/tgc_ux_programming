@@ -3,9 +3,10 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
-public class GestureCircle : MonoBehaviour, IDragHandler, IPointerUpHandler, IPointerDownHandler 
+public class GestureCircle : GameBehaviour, IDragHandler, IPointerUpHandler, IPointerDownHandler 
 {
-    public float DragMotion { private set; get; }
+    /*public float DragMotion { private set; get; }*/
+    public float DragMotion;
     public float Speed;
     public Vector2 MakerOffset;
     public Vector2 ClampDragMotion;
@@ -13,6 +14,17 @@ public class GestureCircle : MonoBehaviour, IDragHandler, IPointerUpHandler, IPo
     private Vector2 _markerPosition;
     private Queue<Vector2> _motionPositions = new Queue<Vector2>();
     private float _velocityDelta = 0f;
+
+    private void Update()
+    {
+        // DEBUG
+        if (Input.GetKey(KeyCode.D))
+        {
+            DragMotion = -0.25f;
+
+            GlobalFriendListManager.OnFriendlistExit();
+        }
+    }
 
     public void OnDrag(PointerEventData data)
     {
@@ -35,7 +47,7 @@ public class GestureCircle : MonoBehaviour, IDragHandler, IPointerUpHandler, IPo
     public void OnPointerUp(PointerEventData data)
     {
         //DragMotion = 0f;
-        LeanTween.value(gameObject, DragMotion, 0f, 0.5f)
+        LeanTween.value(gameObject, DragMotion, 0f, 0.35f)
                  .setOnUpdate(SetDragMotion)
                  .setEase(LeanTweenType.easeOutQuad);
     }
@@ -64,6 +76,6 @@ public class GestureCircle : MonoBehaviour, IDragHandler, IPointerUpHandler, IPo
         float targetDragMotion = Mathf.Clamp((a1 + a2) * 0.5f, ClampDragMotion.x, ClampDragMotion.y);
 
         // any of the direction of motion velocity is applied, they all have to blend together
-        DragMotion = Mathf.SmoothDamp(DragMotion, targetDragMotion, ref _velocityDelta, 1f);
+        DragMotion = Mathf.SmoothDamp(DragMotion, targetDragMotion, ref _velocityDelta, 0.5f);
     }
 }
