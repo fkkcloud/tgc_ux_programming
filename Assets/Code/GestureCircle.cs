@@ -21,7 +21,6 @@ public class GestureCircle : GameBehaviour, IDragHandler, IPointerUpHandler, IPo
         if (Input.GetKey(KeyCode.D))
         {
             DragMotion = -0.25f;
-
             GlobalFriendListManager.OnFriendlistExit();
         }
     }

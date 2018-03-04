@@ -2,10 +2,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class FriendSlot : GameBehaviour
+public class FriendSlot : PoolableUIObject
 {
-    public Renderer Rend;
-    public TextMesh TextRend;
     public ParticleSystem PS_Online;
     public ParticleSystem PS_OnlineClose;
     public ParticleSystem PS_Offline;
@@ -18,16 +16,14 @@ public class FriendSlot : GameBehaviour
     public Vector2 OpacityInTRange;
     public Vector2 OpacityOutTRange;
     public float LifeTime;
-    public SocialDataType.SlotMode CurrentSlotMode { private set; get; }
-    public SocialDataType.NetworkMode CurrentNetworkMode { private set; get; }
 
     private Color _originalColor;
     private Vector3 _positionOnCurve = Vector3.zero;
     private Vector3 _animationVel = Vector3.zero;
-    private bool _initiated = false;
 
-    public void Init(float startT, SocialDataType.NetworkMode networkdMode, string name)
+    public void Init(ref Vector3 startPos, float startT, SocialDataType.NetworkMode networkdMode, string name)
     {
+        gameObject.transform.position = startPos;
         t = startT;
         CurrentSlotMode = SocialDataType.SlotMode.Navigating;
         CurrentNetworkMode = networkdMode;
@@ -76,19 +72,10 @@ public class FriendSlot : GameBehaviour
         }
     }
 
-    public void Reset()
+    public override void Deactivate()
     {
-        _initiated = false;
-    }
-
-    public void Remove()
-    {
-        Reset();
-
         GlobalFriendListManager.RemoveFriendFromSlot(this, true);
-
-        // TODO: use pool deactivate
-        Destroy(this.gameObject);
+        base.Deactivate();
     }
 
     // destroy all the non-animation required friend slot to be destroyed at once
@@ -96,12 +83,7 @@ public class FriendSlot : GameBehaviour
     {
         if (t > LifeTime)
         {
-            Reset();
-
-            GlobalFriendListManager.RemoveFriendFromSlot(this, false);
-
-            // TODO: use pool deactivate
-            Destroy(this.gameObject);
+            Deactivate();
         }
     }
 
@@ -121,12 +103,14 @@ public class FriendSlot : GameBehaviour
             return;
         }
 
-        // Let it destroy it self when its not in friend list zone
-        // TODO: change this to use pool system for static memory usage and tracking later
-        //       also need better way to store slots that exceed lifetime for memory optimization
-        if (t < 0f) // /*t > LifeTime || */
+        /*  
+         * Let it destroy it self when its not in friend list zone
+         * TODO:    have to also keep tracking on t > LifeTime so it is out of 
+         *          both spiral end but for TGC UX programming test, skipping this part
+        */
+        if (t < 0f)
         {
-            Remove();
+            Deactivate();
         }
 
         // Get target position per different slot mode and lerp it
@@ -134,7 +118,7 @@ public class FriendSlot : GameBehaviour
         {
             if (CurrentSlotMode != SocialDataType.SlotMode.Selected)
             {
-                //Handheld.Vibrate(); // vibrate things
+                //Handheld.Vibrate(); // vibrate when the slot got into SelecteZone for the first
             }
             CurrentSlotMode = SocialDataType.SlotMode.Selected;
         }

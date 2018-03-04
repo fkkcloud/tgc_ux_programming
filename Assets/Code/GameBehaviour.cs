@@ -39,4 +39,16 @@ public class GameBehaviour : MonoBehaviour {
             return _spiralMaster;
         }
     }
+
+    private GameState _gameState;
+    public GameState GlobalGameState
+    {
+        get
+        {
+            if (_gameState == null)
+                _gameState = FindObjectOfType<GameState>();
+
+            return _gameState;
+        }
+    }
 }

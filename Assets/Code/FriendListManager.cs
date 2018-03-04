@@ -8,7 +8,6 @@ public class FriendListManager : GameBehaviour
     public float SelectedTValue;
     public float SelectedTLockInterval;
 
-    public GameObject FriendSlotTemplate;
     public PlayerJSON PlayersJSON;
 
     private List<FriendSlot> _friendSlots = new List<FriendSlot>();
@@ -49,7 +48,7 @@ public class FriendListManager : GameBehaviour
         {
             _friendSlots[i].OnFriendlistExit(); 
         }
-        _playerID = 0;
+        ResetPlayerID();
     }
 
     public void ResetPlayerID()
@@ -65,16 +64,19 @@ public class FriendListManager : GameBehaviour
         SpiralMath.GetPositionAt(0f, ref startPos, radiusX, radiusY, GlobalSpiralMaster.ScaleZ, GlobalSpiralMaster.NoiseOn);
         startPos += GlobalSpiralMaster.transform.position;
 
-        // TODO: could use pool for static memory usage but for TGC test time, just go with dynamic instantiation.
-        GameObject gameObj = Instantiate(FriendSlotTemplate, startPos, Quaternion.identity);
+        FriendSlot friendSlot = GlobalGameState.UIPoolManager.GetPoolableObject() as FriendSlot;
+
+        if (friendSlot == null)
+        {
+            Debug.LogError("FAILED: Getting poolable friend slot object.");
+            return;
+        }
 
         // Init the slot
-        FriendSlot friendSlot = gameObj.GetComponent<FriendSlot>();
-        if (_playerID < 0) // temp fix for TGC iPhone demo
+        if (_playerID < 0) // temp fix for TGC iPhone demo to make it circular access
             _playerID = 0;
-        friendSlot.Init(0f, PlayersJSON.Players[_playerID].NetworkMode, PlayersJSON.Players[_playerID].Name);
-
-        // Add the slot to list
+        friendSlot.Activate();
+        friendSlot.Init(ref startPos, 0f, PlayersJSON.Players[_playerID].NetworkMode, PlayersJSON.Players[_playerID].Name);
         _friendSlots.Add(friendSlot);
         _playerID++;
     }

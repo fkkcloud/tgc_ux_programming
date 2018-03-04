@@ -9,7 +9,7 @@ public class GestureSwipe : GameBehaviour, IBeginDragHandler, IEndDragHandler {
     private Vector2 DragEndPos;
     private float DragStartTime;
 
-    private bool _exitingFriendlist = false;
+    private bool _animateExit = false;
 
 	// Use this for initialization
 	void Start () {
@@ -19,7 +19,7 @@ public class GestureSwipe : GameBehaviour, IBeginDragHandler, IEndDragHandler {
 	// Update is called once per frame
 	void Update () {
 
-        if (_exitingFriendlist){
+        if (_animateExit){
 
             if (GlobalSpiralMaster.GetActuralLength() > 0f)
             {
@@ -28,7 +28,7 @@ public class GestureSwipe : GameBehaviour, IBeginDragHandler, IEndDragHandler {
             }
             else 
             {
-                _exitingFriendlist = false;
+                _animateExit = false;
                 GlobalFriendListManager.ResetPlayerID();
             }
         }
@@ -36,9 +36,9 @@ public class GestureSwipe : GameBehaviour, IBeginDragHandler, IEndDragHandler {
 
 	}
 
-    void ExitFriendlist()
+    void StartExitAnimation()
     {
-        _exitingFriendlist = true;
+        _animateExit = true;
     }
 
     public void OnBeginDrag(PointerEventData eventData)
@@ -61,7 +61,7 @@ public class GestureSwipe : GameBehaviour, IBeginDragHandler, IEndDragHandler {
 
             if (isSwipeRight)
             {
-                ExitFriendlist();    
+                StartExitAnimation();    
             }
         }
     }
