@@ -33,6 +33,15 @@ public class GestureCircle : GameBehaviour, IDragHandler, IPointerUpHandler, IPo
         {
             _motionPositions.Dequeue();
         }
+        else if (_motionPositions.Count == 2) //  when user swipe motion starts
+        {
+            // figure out if user started swipe towards -x or x
+            // if x  : set swipe.x + offset
+            // if -x : set swipe.x - offset
+            // figure out if user started swipe towards -y or y
+            // if y  : set swipe.y - offset
+            // if -y : set swipe.y + offset
+         }
 
         GetDragMotion();
     }
@@ -50,6 +59,8 @@ public class GestureCircle : GameBehaviour, IDragHandler, IPointerUpHandler, IPo
         LeanTween.value(gameObject, DragMotion, 0f, 0.35f)
                  .setOnUpdate(SetDragMotion)
                  .setEase(LeanTweenType.easeOutQuad);
+
+        _motionPositions.Clear();
     }
 
     public void SetDragMotion(float newDragMotion)

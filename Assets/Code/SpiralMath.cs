@@ -27,6 +27,7 @@ public static class SpiralMath
         return (Mathf.Approximately(a.x, b.x) && Mathf.Approximately(a.y, b.y));
     }
 
+    // Note that difference between 2 vector is alway between -PI ... PI
     public static float GetAngleAtan2(Vector2 A, Vector2 B)
     {
         // |A·B| = |A| |B| COS(θ)
@@ -43,4 +44,10 @@ public static class SpiralMath
     {
         return A.x * B.y - A.y * B.x;
     }
+
+    // Other way to get directed angle between 2 vectors
+    // The(directed) angle from vector1 to vector2 can be computed as
+    // angle = atan2(vector2.y, vector2.x) - atan2(vector1.y, vector1.x);
+    // normalize it to the range -Pi ~ Pi
+    // https://stackoverflow.com/questions/21483999/using-atan2-to-find-angle-between-two-vectors
 }

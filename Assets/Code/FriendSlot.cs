@@ -4,9 +4,6 @@ using UnityEngine;
 
 public class FriendSlot : GameBehaviour
 {
-    public enum SlotMode { Navigating, Selected };
-    public enum NetworkMode { Online, OnlineClose, Offline };
-
     public Renderer Rend;
     public TextMesh TextRend;
     public ParticleSystem PS_Online;
@@ -21,39 +18,39 @@ public class FriendSlot : GameBehaviour
     public Vector2 OpacityInTRange;
     public Vector2 OpacityOutTRange;
     public float LifeTime;
-    public SlotMode CurrentSlotMode { private set; get; }
-    public NetworkMode CurrentNetworkMode { private set; get; }
+    public SocialDataType.SlotMode CurrentSlotMode { private set; get; }
+    public SocialDataType.NetworkMode CurrentNetworkMode { private set; get; }
 
     private Color _originalColor;
     private Vector3 _positionOnCurve = Vector3.zero;
     private Vector3 _animationVel = Vector3.zero;
     private bool _initiated = false;
 
-    public void Init(float startT, NetworkMode networkdMode, string name)
+    public void Init(float startT, SocialDataType.NetworkMode networkdMode, string name)
     {
         t = startT;
-        CurrentSlotMode = SlotMode.Navigating;
+        CurrentSlotMode = SocialDataType.SlotMode.Navigating;
         CurrentNetworkMode = networkdMode;
         Rend.material.SetFloat("_UIOpacity", 0f);
         Color c = TextRend.color;
         c.a = 0f;
         TextRend.text = name;
         TextRend.color = c;
+        _originalColor = PS_Online.GetComponent<ParticleSystemRenderer>().material.GetColor("_TintColor");
 
-        if (CurrentNetworkMode == NetworkMode.Online)
+        switch (CurrentNetworkMode)
         {
-            _originalColor = PS_Online.GetComponent<ParticleSystemRenderer>().material.GetColor("_TintColor");
-            PS_Online.gameObject.SetActive(true);
-        }
-        else if (CurrentNetworkMode == NetworkMode.OnlineClose)
-        {
-            _originalColor = PS_OnlineClose.GetComponent<ParticleSystemRenderer>().material.GetColor("_TintColor");
-            PS_OnlineClose.gameObject.SetActive(true);
-        }
-        else if (CurrentNetworkMode == NetworkMode.Offline)
-        {
-            _originalColor = PS_Offline.GetComponent<ParticleSystemRenderer>().material.GetColor("_TintColor");
-            PS_Offline.gameObject.SetActive(true);
+            case SocialDataType.NetworkMode.Online:
+                PS_Online.gameObject.SetActive(true);
+                break;
+
+            case SocialDataType.NetworkMode.OnlineClose:
+                PS_OnlineClose.gameObject.SetActive(true);
+                break;
+
+            case SocialDataType.NetworkMode.Offline:
+                PS_Offline.gameObject.SetActive(true);
+                break;
         }
 
         _initiated = true;
@@ -61,7 +58,7 @@ public class FriendSlot : GameBehaviour
 
     private Vector3 GetTargetPosition()
     {
-        if(CurrentSlotMode == SlotMode.Selected)
+        if(CurrentSlotMode == SocialDataType.SlotMode.Selected)
         {
             float radiusX = GlobalSpiralMaster.GetCurrentRadius(GlobalFriendListManager.SelectedTValue, ref GlobalSpiralMaster.RadiusMapX);
             float radiusY = GlobalSpiralMaster.GetCurrentRadius(GlobalFriendListManager.SelectedTValue, ref GlobalSpiralMaster.RadiusMapY);
@@ -79,9 +76,18 @@ public class FriendSlot : GameBehaviour
         }
     }
 
+    public void Reset()
+    {
+        _initiated = false;
+    }
+
     public void Remove()
     {
+        Reset();
+
         GlobalFriendListManager.RemoveFriendFromSlot(this, true);
+
+        // TODO: use pool deactivate
         Destroy(this.gameObject);
     }
 
@@ -90,9 +96,20 @@ public class FriendSlot : GameBehaviour
     {
         if (t > LifeTime)
         {
+            Reset();
+
             GlobalFriendListManager.RemoveFriendFromSlot(this, false);
+
+            // TODO: use pool deactivate
             Destroy(this.gameObject);
         }
+    }
+
+    private bool IsInSelectedZone()
+    {
+        float minSelectedT = GlobalFriendListManager.SelectedTValue - GlobalFriendListManager.SelectedTLockInterval;
+        float maxSelectedT = GlobalFriendListManager.SelectedTValue + GlobalFriendListManager.SelectedTLockInterval;
+        return (t > minSelectedT && t < maxSelectedT);
     }
 
     // Update is called once per frame
@@ -113,18 +130,17 @@ public class FriendSlot : GameBehaviour
         }
 
         // Get target position per different slot mode and lerp it
-        if (t > GlobalFriendListManager.SelectedTValue - GlobalFriendListManager.SelectedTLockInterval &&
-            t < GlobalFriendListManager.SelectedTValue + GlobalFriendListManager.SelectedTLockInterval)
+        if (IsInSelectedZone())
         {
-            if (CurrentSlotMode != SlotMode.Selected)
+            if (CurrentSlotMode != SocialDataType.SlotMode.Selected)
             {
                 //Handheld.Vibrate(); // vibrate things
             }
-            CurrentSlotMode = SlotMode.Selected;
+            CurrentSlotMode = SocialDataType.SlotMode.Selected;
         }
         else
         {
-            CurrentSlotMode = SlotMode.Navigating;
+            CurrentSlotMode = SocialDataType.SlotMode.Navigating;
         }
 
         // set position for slot
@@ -137,111 +153,111 @@ public class FriendSlot : GameBehaviour
 
     private void UpdateVisual()
     {
-        if (CurrentSlotMode == SlotMode.Selected)
+        if (CurrentSlotMode == SocialDataType.SlotMode.Selected)
         {
-            if (!PS_Selected.isPlaying){
-                PS_Selected.gameObject.SetActive(true);
-                PS_Selected.Play();
-            }
-
-            SetSelectedSlotVisual();
+            ActivateSelectedParticle();
+            SetSlotVisual(1.5f, 1.5f, Color.white * 0.5f, Color.white * 0.5f, Color.gray * 0.1f);
         }
-        else 
+        else // when node is not selected
         {
-            if (PS_Selected.isPlaying)
-            {
-                PS_Selected.Stop();
-                PS_Selected.gameObject.SetActive(false);
-            }
+            DeactivateSelectedParticle();
+            SetSlotVisual(1f, 0.68f, _originalColor, _originalColor, _originalColor);
 
-            SetNonSelectedSlotVisual();
-
-            // animate opacity based on location on the curve
-            float textAlpha = ((CurrentNetworkMode == NetworkMode.Offline) ? 0.5f : 1f);
-            if (t <= OpacityInTRange.y)
-            {
-                float k = SpiralMath.Remap(t, OpacityInTRange.x, OpacityInTRange.y, 0f, 1f);
-                Rend.material.SetFloat("_UIOpacity", k);
-                PS_Online.GetComponent<ParticleSystemRenderer>().material.SetFloat("_UIOpacity", k);
-                PS_OnlineCloseFalloff.GetComponent<ParticleSystemRenderer>().material.SetFloat("_UIOpacity", k);
-                PS_OnlineFalloff.GetComponent<ParticleSystemRenderer>().material.SetFloat("_UIOpacity", k);
-                Color c = TextRend.color;
-                c.a = k * textAlpha;
-                TextRend.color = c;
-            }
-            else if (t >= OpacityOutTRange.x)
-            {
-                float k = SpiralMath.Remap(t, OpacityOutTRange.y, OpacityOutTRange.x, 0f, 1f);
-                Rend.material.SetFloat("_UIOpacity", k);
-                PS_Online.GetComponent<ParticleSystemRenderer>().material.SetFloat("_UIOpacity", k);
-                PS_OnlineCloseFalloff.GetComponent<ParticleSystemRenderer>().material.SetFloat("_UIOpacity", k);
-                PS_OnlineFalloff.GetComponent<ParticleSystemRenderer>().material.SetFloat("_UIOpacity", k);
-                Color c = TextRend.color;
-                c.a = k * textAlpha;
-                TextRend.color = c;
-            }
-            else
-            {
-                float k = 1f;
-                Rend.material.SetFloat("_UIOpacity", k);
-                PS_Online.GetComponent<ParticleSystemRenderer>().material.SetFloat("_UIOpacity", k);
-                PS_OnlineCloseFalloff.GetComponent<ParticleSystemRenderer>().material.SetFloat("_UIOpacity", k);
-                PS_OnlineFalloff.GetComponent<ParticleSystemRenderer>().material.SetFloat("_UIOpacity", k);
-                Color c = TextRend.color;
-                c.a = k * textAlpha;
-                TextRend.color = c;
-            }
+            // Animate the color/alpha for the slot along with curve movement
+            UpdateOpacityOnMovement();
         }
     }
 
-    private void SetSelectedSlotVisual()
+    private void UpdateOpacityOnMovement()
     {
-        float scale = 1.5f;
-        float textScale = 1.5f;
-        TextRend.gameObject.transform.localScale = new Vector3(textScale, textScale, textScale);
-        if (CurrentNetworkMode == NetworkMode.Online)
+        if (t <= OpacityInTRange.y)
         {
-            PS_Online.GetComponent<ParticleSystemRenderer>().material.SetColor("_TintColor", Color.white * 0.5f);
-            Rend.material.SetColor("_TintColor", Color.white * 0.5f);
-            PS_Online.gameObject.transform.localScale = new Vector3(scale, scale, scale);
+            float k = SpiralMath.Remap(t, OpacityInTRange.x, OpacityInTRange.y, 0f, 1f);
+            SetOpacityForSlot(k);
         }
-        else if (CurrentNetworkMode == NetworkMode.OnlineClose)
+        else if (t >= OpacityOutTRange.x)
         {
-            PS_OnlineClose.GetComponent<ParticleSystemRenderer>().material.SetColor("_TintColor", Color.white * 0.5f);
-            Rend.material.SetColor("_TintColor", Color.white * 0.5f);
-            PS_OnlineClose.gameObject.transform.localScale = new Vector3(scale, scale, scale);
+            float k = SpiralMath.Remap(t, OpacityOutTRange.y, OpacityOutTRange.x, 0f, 1f);
+            SetOpacityForSlot(k);
         }
-        else if (CurrentNetworkMode == NetworkMode.Offline)
+        else
         {
-            PS_Offline.GetComponent<ParticleSystemRenderer>().material.SetColor("_TintColor", Color.gray * 0.1f);
-            Rend.material.SetColor("_TintColor", Color.gray * 0.1f);
-            PS_Offline.gameObject.transform.localScale = new Vector3(scale, scale, scale);
+            float k = 1f;
+            SetOpacityForSlot(k);
         }
     }
 
-    private void SetNonSelectedSlotVisual()
+    private void SetColorForSlot(ParticleSystem ps, ref Color clr)
     {
-        // set visual look based on networkmode
-        float scale = 1f;
-        float textScale = 0.68f;
+        ps.GetComponent<ParticleSystemRenderer>().material.SetColor("_TintColor", clr);
+        Rend.material.SetColor("_TintColor", clr);
+    }
+
+    private void SetOpacityForSlot(float k)
+    {
+        Rend.material.SetFloat("_UIOpacity", k);
+
+        PS_Online.GetComponent<ParticleSystemRenderer>().material.SetFloat("_UIOpacity", k);
+        PS_OnlineCloseFalloff.GetComponent<ParticleSystemRenderer>().material.SetFloat("_UIOpacity", k);
+        PS_OnlineFalloff.GetComponent<ParticleSystemRenderer>().material.SetFloat("_UIOpacity", k);
+
+        Color c = TextRend.color;
+        float textAlpha = ((CurrentNetworkMode == SocialDataType.NetworkMode.Offline) ? 0.5f : 1f); ;
+        c.a = k * textAlpha;
+        TextRend.color = c;
+    }
+
+    private void SetScaleForSlot(ParticleSystem ps, float scale)
+    {
+        ps.gameObject.transform.localScale = new Vector3(scale, scale, scale);
+    }
+
+    private void SetScaleForSlotText(float textScale)
+    {
         TextRend.gameObject.transform.localScale = new Vector3(textScale, textScale, textScale);
-        if (CurrentNetworkMode == NetworkMode.Online)
+    }
+
+    private void SetSlotVisual(float scale, float textScale, Color onlineColor, Color onlineCloseColor, Color offlineColor)
+    {
+        switch (CurrentNetworkMode)
         {
-            PS_Online.GetComponent<ParticleSystemRenderer>().material.SetColor("_TintColor", _originalColor);
-            Rend.material.SetColor("_TintColor", _originalColor);
-            PS_Online.gameObject.transform.localScale = new Vector3(scale, scale, scale);
+            case SocialDataType.NetworkMode.Online:
+                SetColorForSlot(PS_Online, ref onlineColor);
+                SetScaleForSlot(PS_Online, scale);
+                break;
+
+            case SocialDataType.NetworkMode.OnlineClose:
+                SetColorForSlot(PS_OnlineClose, ref onlineCloseColor);
+                SetScaleForSlot(PS_OnlineClose, scale);
+                break;
+
+            case SocialDataType.NetworkMode.Offline:
+                SetColorForSlot(PS_Offline, ref offlineColor);
+                SetScaleForSlot(PS_Offline, scale);
+                break;
+
+            default:
+                break;
         }
-        else if (CurrentNetworkMode == NetworkMode.OnlineClose)
+
+        SetScaleForSlotText(textScale);
+    }
+
+    private void ActivateSelectedParticle()
+    {
+        if (!PS_Selected.isPlaying)
         {
-            PS_OnlineClose.GetComponent<ParticleSystemRenderer>().material.SetColor("_TintColor", _originalColor);
-            Rend.material.SetColor("_TintColor", _originalColor);
-            PS_OnlineClose.gameObject.transform.localScale = new Vector3(scale, scale, scale);
+            PS_Selected.gameObject.SetActive(true);
+            PS_Selected.Play();
         }
-        else if (CurrentNetworkMode == NetworkMode.Offline)
+    }
+
+    private void DeactivateSelectedParticle()
+    {
+        if (PS_Selected.isPlaying)
         {
-            PS_Offline.GetComponent<ParticleSystemRenderer>().material.SetColor("_TintColor", _originalColor);
-            Rend.material.SetColor("_TintColor", _originalColor);
-            PS_Offline.gameObject.transform.localScale = new Vector3(scale, scale, scale);
+            PS_Selected.Stop();
+            PS_Selected.gameObject.SetActive(false);
         }
     }
 }

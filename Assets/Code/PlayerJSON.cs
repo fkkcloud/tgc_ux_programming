@@ -6,7 +6,7 @@ using UnityEngine;
 public class Profile
 {
     public string Name;
-    public FriendSlot.NetworkMode NetworkMode;
+    public SocialDataType.NetworkMode NetworkMode;
 }
 
 public class PlayerJSON : ScriptableObject 
